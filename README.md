@@ -1,2 +1,9 @@
 # CustomProjectile
- Custom projectile API for spigot plugins!
+ 커스텀 발사체 api입니다.
+ 
+ 구현된 기능
+ --
+ - 대부분의 엔티티 발사 가능
+ - 시작 지점, 사거리, 방향, 속도 지정 가능
+ - 파티클 사용/미사용 가능(기본값 미사용)
+ - 어떤 파티클을 소환할지 지정 가능
