@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CustomProjectile">
+    <output-path>$PROJECT_DIR$/../../1.17.1 server/plugins</output-path>
+    <root id="archive" name="CustomProjectile.jar">
+      <element id="module-output" name="CustomProjectile" />
+    </root>
+  </artifact>
+</component>
