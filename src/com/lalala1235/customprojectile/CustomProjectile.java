@@ -10,7 +10,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CustomProjectile {
@@ -20,6 +23,8 @@ public class CustomProjectile {
     private Particle particle = Particle.BARRIER, endParticle = Particle.EXPLOSION_LARGE;
     private int particleAmount = 1,endParticleAmount = 1;
     private double damage = 1;
+    private boolean startingPointAsHead = false;
+    private final ArrayList<UUID> whitelist = new ArrayList<>();
 
     public CustomProjectile(EntityType type) {
         this.type = type;
@@ -35,7 +40,7 @@ public class CustomProjectile {
     }
 
     public void setUseDamage(boolean flag) {
-        this.useDamage = true;
+        useDamage = flag;
     }
 
     public void setParticle(Particle particle) {
@@ -54,11 +59,29 @@ public class CustomProjectile {
         endParticleAmount = amount;
     }
 
+    public void setStartingPointAsHead(boolean flag) {
+        startingPointAsHead = flag;
+    }
+
     public void setDamage(double damage) {
         this.damage = damage;
     }
 
+    public void setWhiteList(UUID uuid) {
+        whitelist.add(uuid);
+    }
+
+    /**
+     * @param start 시작 위치
+     * @param distance 사거리
+     * @param direction 방향
+     * @param speed 속도
+     */
     public void launch(Location start, int distance, Vector direction, int speed) {
+        if(startingPointAsHead) {
+            start = new Location(start.getWorld(), start.getX(), start.getY() + 1, start.getZ());
+        }
+
         Entity projectile = Objects.requireNonNull(start.getWorld()).spawnEntity(start, type);
         Vector vec = direction.normalize();
 
@@ -71,23 +94,24 @@ public class CustomProjectile {
 
         AtomicInteger repeat = new AtomicInteger();
 
+        Location finalStart = start;
         new BukkitRunnable() {
             @Override
             public void run() {
                 projectile.teleport(projectile.getLocation().add(vec));
-                if(useParticle) start.getWorld().spawnParticle(particle, projectile.getLocation(), particleAmount);
-                if(useDamage) DamageEntity.rangeDamage(projectile.getLocation(), 1, 1, 1, damage);
+                if(useParticle) finalStart.getWorld().spawnParticle(particle, projectile.getLocation(), particleAmount);
+                if(useDamage) DamageEntity.rangeDamage(projectile.getLocation(), 1, 1, 1, damage, whitelist);
                 repeat.getAndIncrement();
 
                 if(repeat.get()==distance) {
-                    if(useEndParticle) start.getWorld().spawnParticle(endParticle, projectile.getLocation(), endParticleAmount);
+                    if(useEndParticle) finalStart.getWorld().spawnParticle(endParticle, projectile.getLocation(), endParticleAmount);
 
                     projectile.remove();
                     cancel();
                 }
 
                 if(!projectile.getLocation().getBlock().isPassable()) {
-                    if(useEndParticle) start.getWorld().spawnParticle(endParticle, projectile.getLocation(), endParticleAmount);
+                    if(useEndParticle) finalStart.getWorld().spawnParticle(endParticle, projectile.getLocation(), endParticleAmount);
                     projectile.remove();
                     cancel();
                 }
